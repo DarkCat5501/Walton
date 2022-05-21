@@ -55,17 +55,7 @@ function setup(){
 	mainTable.addRow(["abril","30"],3);
 	}
 
-	console.log(mainTable);
-	const divTeste = new ElementWrapper("div");
-	divTeste.addClasses(["teste"]);
-	divTeste.attach(_main_container);
-	
-	const div3 = divTeste.clone();
-	div3.css_variables["bg-color"] = "blue";
-	_main_container.element.prepend(div3.element);
-
-
-	mainTable.attach(_main_container);
+	mainTable.append(_main_container);
 	dynamicElements.push(mainTable);
 
 }
