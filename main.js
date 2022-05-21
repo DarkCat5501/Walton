@@ -1,4 +1,4 @@
-const dynamicElements = [];
+const _dynamic_elements = [];
 const _main_container = new ElementWrapper(document.getElementById("main"));
 const _root_element = new ElementWrapper(document.querySelector(":root"));
 const _customizer_element = new ElementWrapper(document.getElementById("customizer"));
@@ -56,11 +56,11 @@ function setup(){
 	}
 
 	mainTable.append(_main_container);
-	dynamicElements.push(mainTable);
+	_dynamic_elements.push(mainTable);
 
 }
 
 function update(){
 	if(_customizer_tool){ _customizer_tool.update();}
-	dynamicElements.forEach(element => element.update());
+	_dynamic_elements.forEach(element => element.update());
 }
