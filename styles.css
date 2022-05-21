@@ -25,6 +25,9 @@
 	--checkbox-disabled-color: #aaaaaa;
 	--checkbox-color: #4e4e4e;
 	--checkbox-checked-color: #22222299;
+
+	--bg-color: #ff9900;
+	--color: #000000;
 }
 
 body {
@@ -257,4 +260,13 @@ div.customizer .customizer-option{
 	display: block;
 	width:100%;
 	margin: 10px auto;
+}
+
+.teste {
+	content: "Somente um teste";
+	display: block;
+	width: 100%;
+	height: 30px;
+	background-color: var(--bg-color);
+	color: var(--text-color);
 }
