@@ -27,32 +27,34 @@ const _customizer_tool = new CustomizerTool(_customizer_element.element,{
 	}
 },_root_element.css_variables);
 
-async function get(url){
-	return fetch(url).then(response => response.json() ).catch(err => console.log(err));
-}
 
 function setup(){
 	const mainTable = new Table(_main_container.element);
 	mainTable.addClasses(["full"]);
 	
-	get("https://economia.awesomeapi.com.br/json/daily/USD-BRL/10").then((data) => {
-		let offset_data = new Date();
-		data.forEach( value => {
-			console.log(value);
-			if("create_date" in value){  offset_data = new Date(value.create_date); }
+	const colorPicker = new ColorPicker();
+	colorPicker.prepend(_root_element);
 
-			if("code" in value){
-				mainTable.addHeader([`conversão ${value.name}`],1,["start-align","danger"]);
-				mainTable.addHeader(["inicio","fim","% variação","data"],4);
-			} else { const date =new Date( Number(offset_data) - Number(value.timestamp) ).toLocaleString();
-				const p = new ElementWrapper(document.createElement("p"));p.element.innerText = `${value.pctChange}%`;
-				p.element.style.color = value.pctChange>0?"var(--color-danger)":"var(--color-success)";
-				mainTable.addRow([value.high,value.low, p.element ,date],4); }
-		});
+	const request = get("https://economia.awesomeapi.com.br/json/daily/USD-BRL/10");
+	  
+	request.then((data)=>{
+			let offset_data = new Date();
+			data.forEach( value => {
+				if("create_date" in value){  offset_data = new Date(value.create_date); }
+				if("code" in value){
+					mainTable.addHeader([`conversão ${value.name}`],1,["start-align","danger"]);
+					mainTable.addHeader(["inicio","fim","% variação","data"],4);
+				} else { 
+					const date =new Date( Number(offset_data) - Number(value.timestamp) ).toLocaleString();
+					const p = new ElementWrapper(document.createElement("p"));p.element.innerText = `${value.pctChange}%`;
+					p.element.style.color = value.pctChange>0?"var(--color-danger)":"var(--color-success)";
+					mainTable.addRow([value.high,value.low, p.element ,date],4); }
+			});
 	});
 	
 	mainTable.append(_main_container);
 	_dynamic_elements.push(mainTable);
+	_dynamic_elements.push(colorPicker);
 }
 
 function update(){
