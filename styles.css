@@ -71,10 +71,14 @@ table{
 	padding-left:none;
 }
 
-.table tr:nth-child(odd) {
-	filter: brightness(0.8);
+.table tr.start-align th{
+	justify-content: left;
+	padding-left:20px;
 }
 
+.table tr:nth-child(odd) {
+	filter: brightness(0.85);
+}
 
 .table tr:hover{
 	position: relative;
@@ -89,17 +93,17 @@ table{
 	filter: brightness(1.1);
 }
 
-.table tr.danger{
+.table tr.danger td,.table tr.danger th{
 	background-color: var(--color-danger);
 	color:#000000aa;
 }
 
-.table tr.warn{
+.table tr.warn td,.table tr.warn th{
 	background-color: var(--color-warn);
 	color:#000000aa;
 }
 
-.table tr.success{
+.table tr.success td,.table tr.success th{
 	background-color: var(--color-success);
 	color:#000000aa;
 }
@@ -114,7 +118,7 @@ button {
 	padding: 0.2rem 0.5rem;
 	background-color: var(--button-bg-color);
 	border-color: var(--button-border-color);
-	border: none;
+	border: var(--button-border);
 	border-bottom: 0.5rem solid #00000099;
 	border-radius: 0.2rem;
 	color: var(--button-text-color);

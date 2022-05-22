@@ -27,37 +27,32 @@ const _customizer_tool = new CustomizerTool(_customizer_element.element,{
 	}
 },_root_element.css_variables);
 
+async function get(url){
+	return fetch(url).then(response => response.json() ).catch(err => console.log(err));
+}
 
 function setup(){
 	const mainTable = new Table(_main_container.element);
-	{
 	mainTable.addClasses(["full"]);
-	const deleteButton = document.createElement("button");
-	deleteButton.classList.add(["btn-warn"]);
-	deleteButton.innerHTML = "Delete";
 	
+	get("https://economia.awesomeapi.com.br/json/daily/USD-BRL/10").then((data) => {
+		let offset_data = new Date();
+		data.forEach( value => {
+			console.log(value);
+			if("create_date" in value){  offset_data = new Date(value.create_date); }
+
+			if("code" in value){
+				mainTable.addHeader([`conversão ${value.name}`],1,["start-align","danger"]);
+				mainTable.addHeader(["inicio","fim","% variação","data"],4);
+			} else { const date =new Date( Number(offset_data) - Number(value.timestamp) ).toLocaleString();
+				const p = new ElementWrapper(document.createElement("p"));p.element.innerText = `${value.pctChange}%`;
+				p.element.style.color = value.pctChange>0?"var(--color-danger)":"var(--color-success)";
+				mainTable.addRow([value.high,value.low, p.element ,date],4); }
+		});
+	});
 	
-	const checkBox = document.createElement("input");
-	checkBox.type = "checkbox";
-	checkBox.title = "disable";
-
-
-	mainTable.addHeader(["mês","valor"],3)
-	mainTable.addRow(["janeiro","10.0",deleteButton.cloneNode(true)],3);
-	mainTable.addRow(["fevereiro","3.0",checkBox.cloneNode(true)],3);
-	mainTable.addRow(["success","21.0",checkBox.cloneNode(true)],3,["success"]);
-	mainTable.addRow(["março","21.0",checkBox.cloneNode(true)],3);
-	mainTable.addRow(["danger","21.0",checkBox.cloneNode(true)],3,["danger"]);
-	mainTable.addRow(["março","21.0",checkBox.cloneNode(true)],3);
-	mainTable.addRow(["warn","21.0",checkBox.cloneNode(true)],3,["warn"]);
-	mainTable.addRow(["março",checkBox.cloneNode(true),checkBox.cloneNode(true)],3);
-	mainTable.addRow(["teste001","21.0",checkBox.cloneNode(true)],3);
-	mainTable.addRow(["abril","30"],3);
-	}
-
 	mainTable.append(_main_container);
 	_dynamic_elements.push(mainTable);
-
 }
 
 function update(){

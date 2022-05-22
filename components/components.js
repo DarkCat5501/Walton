@@ -101,7 +101,11 @@ class CssVariables{
 		(target instanceof HTMLElement)? target.before(this._element) : target.element.before(this._element);
 	}
 
-	clone(deep = true){ return new ElementWrapper(this._element.cloneNode(deep)); }
+	clone(deep = true){ 
+		const newThis = new ElementWrapper(this._element.cloneNode(deep));
+		const oldCopy = {}; Object.assign(oldCopy,{ ...this, ...newThis });
+		return Object.assign(Object.create(ElementWrapper.prototype),oldCopy);
+	}
 	cloneTo(target, deep = true){ const clone = this.clone(deep); clone.attach(target); return clone; }
 
 	//css related functions
@@ -113,6 +117,44 @@ class CssVariables{
 	get css_variables(){ return this._element.css_variables; }
 
 	update(){}//TODO: implement
+}
+
+class Input extends ElementWrapper{
+	constructor(type){
+		super("input");
+		this._element.type = type;
+		const ref = this;
+		this._element.onchange = (event) => ref.onChange(event);
+	}
+
+	onChange(event){}
+}
+
+class CheckBox extends Input{
+	constructor(title){
+		super("checkbox"); this._element.title = title;
+	}
+
+	onChange(event){
+		console.log(event);
+	}
+}
+
+class Button extends ElementWrapper {
+	on_click_events = [];
+	constructor(title){
+		super("button"); this._element.innerText = title;
+		const ref = this;
+		this._element.onclick = (event) => ref.onClick(event);
+	}
+
+	clone(deep){
+		const newButton = Object.assign(Object.create(Button.prototype),super.clone(deep));
+		const ref = this; newButton._element.onclick = (event) => ref.onClick(event);
+		return newButton;
+	}
+
+	onClick(event){ this.on_click_events.forEach(callback => callback(event)); }
 }
 
 class Table extends ElementWrapper{
