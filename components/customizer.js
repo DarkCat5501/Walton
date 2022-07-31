@@ -45,7 +45,7 @@ class CustomizerTool {
       variable._customizer_ref = this;
       variable._css_prop = css_handler[key];
       variable.value = variable._css_prop.value;
-      variable.onchange = this.onPropChange;
+      variable.onchange = variable.oninput = this.onPropChange;
       this._field.appendChild(div);
     });
 

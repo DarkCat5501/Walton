@@ -11,26 +11,41 @@
 	<script src="./components/customizer.js"></script>
 	<title>Document</title>
 </head>
-<body>
-	<header>
+<body left-menu>
+	
+	<menu open="true"><ul>
+		<li><a href="#home">Home</a></li>
+		<ul title="sub1" open="true">
+			<li><a href="#">Submenu 1</a></li>
+			<li><a href="#">Submenu 2</a></li>
+			<ul title="sub2" open="false">
+				<li><a href="#">Submenu 3</a></li>
+				<li>
+					<a href="#">Subasdmenu 4</a>
+				</li>
+			</ul>
+			<li><a href="#">Submenu 5</a></li>
+			<li><a href="#">Submenu 6</a></li>
+		</ul>
+		<li><a href="#about">About</a></li>
+		<li><a href="#contact">Contact</a></li>
+	</ul></menu>
+	<div class="container">
+		<header>
+			<nav><ul>
+				<li><a href="#">Home</a></li>
+				<li><a href="#">About</a></li>
+				<li><a href="#">Contact</a></li>
+			</ul></nav>
+		</header>
 
-	</header>
-	<main id="main">
-		<div id="customizer" class="customizer" draggable="false" closed="true" ondblclick="this.toggle();">
-			<p>customizer</p>
-		</div>
+		<main id="main">
+		</main>
 
-	</main>
-	<footer>
+		<footer> ©DarkCat#5501 </footer>
+	</div>
+		
 
-	</footer>
-
-	<script src="./main.js"></script>
-	<script>
-		setup();
-		setInterval(() => {
-			update();
-		},300);
-	</script>
+	
 </body>
 </html>

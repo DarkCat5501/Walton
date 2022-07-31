@@ -26,7 +26,7 @@ class VariableRef{
  */
 class CssVariables{
 
-	_target = undefined;
+	_target;
 	vars = {};
 
 	constructor(target){
@@ -40,7 +40,11 @@ class CssVariables{
 				}
 				return obj.vars[key];
 			},
-			set: (obj, key,value) => obj.setVariable(key,value)
+			set: (obj, key,value) => {
+				try{ obj.setVariable(key,value) }
+				catch (e){ console.error(e); return false }
+				return true;
+			}
 		});
 	}
 
@@ -49,9 +53,7 @@ class CssVariables{
 		return rs.getPropertyValue(`--${name}`);
 	}
 
-	setVariable(name, value){
-		this._target.style.setProperty(`--${name}`,value);
-	}
+	setVariable(name, value){ return this._target.style.setProperty(`--${name}`,value); }
 
 }
 
@@ -121,7 +123,7 @@ class CssVariables{
 }
 
 class ColorPicker extends ElementWrapper{
-	_sprectrum_map; _hue_map;_static_hue = true;
+	_relative_to; _sprectrum_map; _hue_map;_static_hue = true;
 	_currentColor = '';_currentHueColor = '';_h = 0; _s = 1; _l = .5;
 	constructor(element,static_hue = true){
 		super(element || "div");
@@ -154,6 +156,7 @@ class ColorPicker extends ElementWrapper{
 		this._hue_map.element.addEventListener('mousedown',(event) => { ref._startHue(event); });
 		this.updateSpectrum(); this.updateHue();
 		if(!static_hue) this.updateHue();
+		this.toggle();
 	}
 	_refreshElementRects() {
 		this._hue_map._canvas_rect = this._hue_map._canvas.element.getBoundingClientRect();
@@ -166,16 +169,17 @@ class ColorPicker extends ElementWrapper{
 		this.__mouse_move_event_spectrum = (event) => ref._getSpectrum(event);
 		window.addEventListener('mousemove',this.__mouse_move_event_spectrum);
 		window.addEventListener('mouseup',(event) => ref._endSpectrum(event));
+		this.onChange(this._currentColor);
 	}
 	_getSpectrum(event){
 		event.preventDefault();
 		this._refreshElementRects();
-		let _x = event.pageX - this._sprectrum_map._canvas_rect.left;
-		let _y = event.pageY - this._sprectrum_map._canvas_rect.top;
+		let _x = event.layerX;
+		let _y = event.layerY;
 		if(_x > this._sprectrum_map._canvas_rect.width) { _x = this._sprectrum_map._canvas_rect.width; }
 		else if(_x < 0) {_x = 0;}
 		if(_y > this._sprectrum_map._canvas_rect.height) { _y = this._sprectrum_map._canvas_rect.height; }
-		else if(_y < 0) {_y = 0;}
+		else if(_y < 0) {_y = 0.1;}
 		const xR = _x/this._sprectrum_map._canvas_rect.width;
 		const yR = _y/this._sprectrum_map._canvas_rect.height;
 		const hsvValue = 1 - yR;
@@ -183,10 +187,12 @@ class ColorPicker extends ElementWrapper{
 		this._s = (hsvValue * xR) / (1 - Math.abs(2 * this._l -1));
 		this._currentColor = tinycolor('hsl ' + this._h + ' ' + this._s + ' ' + this._l).toHexString();
 		this._updateSpectrumCursor(_x,_y);
+		this.onChange(this._currentColor);
 	}
 	_endSpectrum(event){
 		this._sprectrum_map._cursor.removeClasses(['dragging']);
   		window.removeEventListener('mousemove',this.__mouse_move_event_spectrum);
+		this.onChange(this._currentColor);
 	}
 	_startHue(event){ 
 		//getHueColor(event);
@@ -195,11 +201,12 @@ class ColorPicker extends ElementWrapper{
 		this.__mouse_move_event_hue = (event) => ref._getHue(event);
 		window.addEventListener('mousemove',this.__mouse_move_event_hue);
 		window.addEventListener('mouseup',(event) => ref._endHue(event));
+		this.onChange(this._currentColor);
 	}
 	_getHue(event){
 		event.preventDefault();
 		this._refreshElementRects();
-		var _y = event.pageY - this._hue_map._canvas_rect.top;
+		var _y = event.layerY;
 		if (_y > this._hue_map._canvas_rect.height){ _y = this._hue_map._canvas_rect.height; }
 		else if (_y < 0) { _y = 0};
 		const percent = _y / this._hue_map._canvas_rect.height;
@@ -208,13 +215,15 @@ class ColorPicker extends ElementWrapper{
 		this._currentHueColor = tinycolor('hsl ' + this._h + ' 1 .5').toHexString();
 		this.updateSpectrum();
 		this._updateHueCursor(_y);
+		this.onChange(this._currentColor);
 	}
 	_endHue(event){
 		this._hue_map._cursor.removeClasses(['dragging']);
   		window.removeEventListener('mousemove',this.__mouse_move_event_hue);
+		this.onChange(this._currentColor);
 	}
-	_updateHueCursor(y) { 
-		this._hue_map._cursor.element.style.top = y + "px";
+	_updateHueCursor() { 
+		this._hue_map._cursor.element.style.top = ((1-this._h/360)*100 ) + "%";
 		this._hue_map._cursor.element.style["background-color"] = this._currentHueColor;
 	}
 	_updateSpectrumCursor(x, y) {
@@ -260,25 +269,55 @@ class ColorPicker extends ElementWrapper{
 		this._refreshElementRects();
 		const c = tinycolor(color);
 		this._currentHueColor = tinycolor('hsl ' + c.toHsl().h + ' 1 .5').toHslString();
-		const _y = (360 - color.toHsl().h) / 360 * this._hue_map._canvas_rect.height;
+		const _y = (360 - c.toHsl().h) / 360 * this._hue_map._canvas_rect.height;
 		this._updateHueCursor(_y);
 	};
 	_colorToPos(color) {
-		const c = tinycolor(color); const hsl = c.toHsl();const hsv = color.toHsv();
+		this._refreshElementRects();
+		this._currentColor = color;
+		const c = tinycolor(color); const hsl = c.toHsl();const hsv = c.toHsv();
 		this._h = hsl.h; 
 		const _x = hsv.s * this._sprectrum_map._canvas_rect.width;
 		const _y = (1 - hsv.v) * this._sprectrum_map._canvas_rect.height;
 		const hueY = (360 - hsl.h) / 360 * this._hue_map._canvas_rect.height;
 		this._updateSpectrumCursor(_x, _y);
 		this._updateHueCursor(hueY);
-		this.update();
 	};
 
-	setColor(color){ this._colorToPos(color); this._colorToHue(color); }
+	setColor(color){  this._colorToPos(color); this._colorToHue(color); this.update(); }
 	update(){ this.updateHue(); this.updateSpectrum(); }
-	toggle(){
-		if(!this._element.style.display){ this._element.style.display="none";}
-		else { this._element.style.display="";}
+
+	setRelative(relative){ this._relative_to = relative; }
+
+	onChange(color){}
+
+	toggle(show=undefined){
+		if(this._relative_to){
+			const rect = this._relative_to.getBoundingClientRect();
+			const this_rect = this._element.getBoundingClientRect();
+
+			
+			//check if the final rect is inside the screen
+			
+			const top = (rect.top < screenTop ? screenTop : rect.top) + window.scrollY;
+			console.log(window.scrollX,window.scrollY,screenTop,screenLeft);
+
+			this._element.style.top = ( top + this._element.offsetHeight) + 'px';
+
+
+			if(rect.right + this._element.offsetWidth > window.innerWidth){
+				this._element.style.left = (rect.left - this._element.offsetWidth) + 'px';
+			} else {
+				this._element.style.left = (rect.right + this._element.offsetWidth) + 'px';
+			}
+
+			// this._element.style.left = rect.left + rect.width + 'px';
+			// this._element.style.top = rect.top - rect.height + 'px';
+		}
+
+		if(show===false){ this._element.style.display="none"; return; }
+		else if(show===true){  this._element.style.display=""; return; } 
+		this._element.style.display=this._element.style.display=="none"?"":"none";	
 	}
 }
 
@@ -301,9 +340,7 @@ class CheckBox extends Input{
 		super("checkbox"); this._element.title = title;
 	}
 
-	onChange(event){
-		console.log(event);
-	}
+	onChange(event){ }
 }
 
 class Button extends ElementWrapper {
@@ -385,3 +422,94 @@ class Table extends ElementWrapper{
 	}
 
 }
+
+class ColorBox extends ElementWrapper{
+	_selector;
+	constructor(element){
+		super(element);
+		const ref = this;
+		this._element.addEventListener("click", (event) => {
+			if(event.target === ref.element){ ref.onClick(); }
+		});
+
+		this._setupColor();
+		this._element.value = {
+			get: () => ref.getValue,
+			set: (v) => ref.setValue(v)
+		};
+	}
+
+	getValue(){ return this._element.getAttribute("value"); }
+	setValue(v){
+		this._element.setAttribute("value",v)
+		this._element.css_variables["color"] = v;
+		const e = new Event("change");
+		this._element.dispatchEvent(e);
+	}
+
+	isDisabled(){
+		const disable = this._element.getAttribute("disabled")
+		return (disable===undefined||disable===""||disable==="true");
+	}
+	setEnable(enable=true){
+	 	this._element.setAttribute("disabled",!enable);
+	 	const e = new Event("change");
+	 	this._element.dispatchEvent(e);
+	}
+
+	_setupColor(){
+		if(!this.getValue()) this.setValue("#000000");
+		this._element.css_variables["color"] = this.getValue();
+	}
+
+	onClick(){		
+		if(!this.isDisabled()){
+			if(this._selector===undefined){ 
+				const picker = new ColorPicker();
+				picker.append(document.body); //important, appending to body, so it is always on top and doesn't cause any problems
+				picker.setRelative(this._element);
+				const ref = this;
+				picker.onChange = (color) => {
+					this.setValue(color);
+					this.update();
+				}
+				this._selector = picker;
+			}
+			this._selector.toggle();
+			this._selector.setColor(this.getValue());
+
+		} 
+	}
+
+	update(){
+		
+	}
+}
+
+function setupCustomElements(target){
+	switch(target.tagName){
+		case "COLOR-BOX":
+			new ColorBox(target);
+			break;
+		default:break;
+	}
+}
+
+const globalObserver = new MutationObserver(function (e) { 
+	e.forEach((m)=>{
+		switch(m.type){
+			case "attributes":
+				//console.log("attribute changed",m.target,m.attributeName,m.oldValue,m.newValue);
+				break;
+			case "childList":
+				setupCustomElements(m.target);
+				//console.log("childList changed",m.target,m.addedNodes,m.removedNodes);
+				break;
+			case "characterData":
+				//console.log("characterData changed",m.target,m.oldValue,m.newValue);
+				break;
+			default:break;
+		}
+	})
+});
+globalObserver.observe(document, {childList: true, subtree: true, attributes: true });
