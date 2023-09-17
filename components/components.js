@@ -2,8 +2,9 @@
  * @brief used to maintain a reference to some given object
  */
 class VariableRef{
+	/**@type {any} */
 	_variable = undefined;
-	_setterCallback = (variable, value) => variable = value;
+	_setterCallback = (variable, value) => (variable = value);
 	_getterCallback = (variable) => variable;
 
 	constructor(variable, setterCallback, getterCallback){
@@ -487,6 +488,8 @@ class ColorBox extends ElementWrapper{
 }
 
 function setupCustomElements(target){
+	console.log(target)
+
 	switch(target.tagName){
 		case "COLOR-BOX":
 			new ColorBox(target);

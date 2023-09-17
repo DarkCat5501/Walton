@@ -1,0 +1,15 @@
+:root {
+	--base-bg: #1d1d1d;
+	--base-fg: #fdfdfd;
+}
+
+* {
+	background-color: var(--base-bg);
+	color: var(--base-fg);
+	width: 100vw; height: 100vh;
+	overflow: hidden;
+}
+
+canvas {
+	outline: 1px solid red;
+}
